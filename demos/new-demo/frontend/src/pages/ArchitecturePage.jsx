@@ -2,7 +2,7 @@ import { StructuredListBody, StructuredListCell, StructuredListHead, StructuredL
 
 const LAYERS = [
   { title: 'Client layer', items: [['Carbon React UI (g90)', 'Role picker, upload, fit result']] },
-  { title: 'Application layer (FastAPI)', items: [['Resume parser', 'PDF, DOCX, RTF, HTML, text, image'], ['Role catalog', '25 synthetic role profiles'], ['Fit analyser', 'Mock matcher or watsonx.ai']] },
+  { title: 'Application layer (FastAPI)', items: [['Resume parser', 'PDF, DOCX, RTF, HTML, text'], ['Role catalog', '25 synthetic role profiles'], ['Fit analyser', 'Mock matcher or watsonx.ai']] },
   { title: 'IBM watsonx platform', items: [['watsonx.ai', 'meta-llama/llama-4-maverick-17b-128e-instruct-fp8 via chat()']] },
   { title: 'Safety and governance', items: [['Untrusted resume text', 'Isolated in the user message'], ['Output validation', 'Schema check, score clamp, server-side verdict'], ['Advisory only', 'No hiring decision, nothing stored']] },
 ];
