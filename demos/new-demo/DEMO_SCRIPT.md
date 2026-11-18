@@ -39,7 +39,7 @@ Advisory only, nothing stored, resume treated as untrusted input, verdict comput
 | Is this a hiring decision? | No. It is advisory career guidance, and a human decides. |
 | Is the resume stored? | No. It is processed in memory and discarded. |
 | Which model? | Llama 4 Maverick on watsonx.ai (live mode). The demo runs in mock mode. |
-| Does it handle scanned resumes? | In live mode as images, via the multimodal model. |
+| Does it handle scanned resumes? | Not images or screenshots. Upload a text-based PDF, DOCX or TXT. |
 | Are these real IBM roles? | No. They are synthetic, illustrative profiles. |
 | How is bias handled? | Protected attributes are excluded from the prompt. A formal fairness test is in the pilot. |
 | Why is the score the same each time in the demo? | Mock mode is deterministic so the demo is repeatable. |

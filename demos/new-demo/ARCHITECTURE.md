@@ -11,7 +11,7 @@ graph TB
   end
   subgraph App["Application Layer (FastAPI)"]
     API["/api/ai/analyze"]
-    Parser["Resume parser<br/>PDF · DOCX · RTF · HTML · text · image"]
+    Parser["Resume parser<br/>PDF · DOCX · RTF · HTML · text"]
     Cat["Role catalog (25 synthetic roles)"]
     An["Fit analyser<br/>mock matcher | live"]
     Val["Output validator<br/>schema · clamp · verdict"]
@@ -40,7 +40,7 @@ graph TB
 ## Data flow
 
 1. UI posts `role_id` and either a file or a `sample_id`.
-2. The parser extracts text (or builds an image data URL), capped at 10 MB and 60k characters.
+2. The parser extracts text (image files are rejected), capped at 10 MB and 60k characters.
 3. Mock: alias-aware skill matching, weighted 70% required / 30% preferred. Live: `chat()` with a JSON response format.
 4. The validator keeps only real role skills, clamps the score, and sets the verdict server-side (75+ Suitable, 50-74 Partially suitable, below 50 Not yet).
 5. The response includes an advisory note. Nothing is persisted.

@@ -8,26 +8,22 @@ Security notes:
 """
 from __future__ import annotations
 
-import base64
 import html
 import io
 import re
 import zipfile
 from dataclasses import dataclass
-from typing import Optional
 
 MAX_MEMBER_BYTES = 20 * 1024 * 1024
 MAX_PDF_PAGES = 30
 MAX_TEXT_CHARS = 60_000
 MIN_USEFUL_CHARS = 40
 
-IMAGE_TYPES = {
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".webp": "image/webp",
-    ".gif": "image/gif",
-}
+# Image files (screenshots, photos) are not supported: mock mode cannot read them and
+# live mode is not a supported input path for this demo.
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+IMAGE_MAGIC = (b"\x89PNG", b"\xff\xd8\xff", b"GIF87a", b"GIF89a")
+IMAGE_REJECTED_MESSAGE = "Image files (screenshots, photos) are not supported. Upload a PDF, DOCX or TXT file instead."
 
 
 class ResumeParseError(ValueError):
@@ -37,9 +33,7 @@ class ResumeParseError(ValueError):
 @dataclass
 class ParsedResume:
     filename: str
-    kind: str  # "text" | "image"
     text: str = ""
-    image_data_url: Optional[str] = None
     detected_format: str = "text"
 
     @property
@@ -137,18 +131,24 @@ def _normalize(text: str) -> str:
     return text.strip()
 
 
+def _is_image(ext: str, data: bytes, content_type: str) -> bool:
+    return (
+        ext in IMAGE_EXTENSIONS
+        or content_type.startswith("image/")
+        or data.startswith(IMAGE_MAGIC)
+        or (data[:4] == b"RIFF" and data[8:12] == b"WEBP")
+    )
+
+
 def parse_resume(filename: str, data: bytes, content_type: str = "") -> ParsedResume:
-    """Turn uploaded bytes into text (or an image data URL for scanned/photo resumes)."""
+    """Turn uploaded bytes into text. Image files are rejected."""
     if not data:
         raise ResumeParseError("The uploaded file is empty.")
     filename = (filename or "resume").strip()
     ext = _ext(filename)
 
-    # Images -> handed to the multimodal model in live mode.
-    if ext in IMAGE_TYPES or content_type.startswith("image/"):
-        mime = IMAGE_TYPES.get(ext, content_type or "image/png")
-        url = f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
-        return ParsedResume(filename=filename, kind="image", image_data_url=url, detected_format="image")
+    if _is_image(ext, data, content_type):
+        raise ResumeParseError(IMAGE_REJECTED_MESSAGE)
 
     detected = ext.lstrip(".") or "unknown"
     if data[:4] == b"%PDF" or ext == ".pdf":
@@ -169,6 +169,6 @@ def parse_resume(filename: str, data: bytes, content_type: str = "") -> ParsedRe
     if len(text) < MIN_USEFUL_CHARS:
         raise ResumeParseError(
             "Could not find readable text in this file. If it is a scanned document, "
-            "upload it as an image (PNG/JPG) in live mode, or use a text-based copy."
+            "upload a text-based copy (PDF with a text layer, DOCX or TXT)."
         )
-    return ParsedResume(filename=filename, kind="text", text=text, detected_format=detected)
+    return ParsedResume(filename=filename, text=text, detected_format=detected)

@@ -14,6 +14,9 @@ import { Checkmark, Close, Analytics } from '@carbon/icons-react';
 import { analyzeResume, getCategories, getRoles, getSamples } from '../services/api.js';
 
 const ALL = { id: 'ALL', label: 'All categories' };
+// Text-based resume formats only. Images/screenshots are not supported.
+const ACCEPTED_EXTENSIONS = ['.pdf', '.docx', '.doc', '.odt', '.pptx', '.xlsx', '.rtf', '.html', '.htm', '.xml', '.txt', '.md', '.csv'];
+const UNSUPPORTED_FILE_MESSAGE = 'This file type is not supported. Upload a PDF, DOCX or TXT file instead (images and screenshots cannot be analysed).';
 const VERDICT_TAG = { Suitable: 'green', 'Partially suitable': 'cyan', 'Not yet': 'magenta' };
 const VERDICT_BAR = { Suitable: 'finished', 'Partially suitable': 'active', 'Not yet': 'error' };
 
@@ -122,11 +125,17 @@ export default function AnalyzerPage() {
   };
 
   const onFiles = (_e, { addedFiles }) => {
-    if (addedFiles?.length) {
-      setFile(addedFiles[0]);
-      setSample(null);
-      setError('');
+    if (!addedFiles?.length) return;
+    const picked = addedFiles[0];
+    if (picked.invalidFileType) {
+      const tooBig = picked.size > 10 * 1024 * 1024;
+      setFile(null);
+      setError(tooBig ? 'File is larger than 10 MB.' : UNSUPPORTED_FILE_MESSAGE);
+      return;
     }
+    setFile(picked);
+    setSample(null);
+    setError('');
   };
 
   const canSubmit = !!role && (!!file || !!sample) && !busy;
@@ -156,7 +165,7 @@ export default function AnalyzerPage() {
     <div className="page">
       <h1 className="page__title cds--type-productive-heading-05">Is this role right for you?</h1>
       <p className="page__lead cds--type-body-02">
-        Upload your resume in any format, pick the IBM role you are interested in, and get an advisory fit score with the skills you already show and the ones to build.
+        Upload your resume (PDF, DOCX, TXT and other text-based formats), pick the IBM role you are interested in, and get an advisory fit score with the skills you already show and the ones to build.
       </p>
 
       <div className="analyzer">
@@ -202,12 +211,12 @@ export default function AnalyzerPage() {
               <span className="step__num">2</span> Provide your resume
             </div>
             <FileUploaderDropContainer
-              labelText="Drag and drop your resume here or click to upload (any format: PDF, DOCX, TXT, RTF, HTML, image...)"
+              labelText="Drag and drop your resume here or click to upload (PDF, DOCX, TXT, RTF, HTML - no images or screenshots)"
               name="resume"
               multiple={false}
               maxFileSize={10 * 1024 * 1024}
               onAddFiles={onFiles}
-              accept={[]}
+              accept={ACCEPTED_EXTENSIONS}
             />
             {file && (
               <div className="file-picked">

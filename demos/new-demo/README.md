@@ -2,9 +2,9 @@
 
 > **Demonstration Environment.** All data is synthetic. No real client data or PII is used. Role profiles are illustrative, not real IBM job postings. Resumes are processed in memory and never stored.
 
-IBM employees upload a resume in **any format**, pick an interested role (filtered by category: Technical, Sales, Consulting, Product & Design, Corporate), and get an **advisory** 0-100 fit score, a verdict (Suitable / Partially suitable / Not yet), and the matched and missing skills.
+IBM employees upload a text-based resume (PDF, DOCX, TXT and similar; no images or screenshots), pick an interested role (filtered by category: Technical, Sales, Consulting, Product & Design, Corporate), and get an **advisory** 0-100 fit score, a verdict (Suitable / Partially suitable / Not yet), and the matched and missing skills.
 
-Built with IBM watsonx. Default model: `meta-llama/llama-4-maverick-17b-128e-instruct-fp8` (multimodal, so image resumes work in live mode).
+Built with IBM watsonx. Default model: `meta-llama/llama-4-maverick-17b-128e-instruct-fp8`.
 
 ```
 # DEPLOY_TARGET: openshift   (default when containerized; UBI 9 required)
@@ -30,14 +30,14 @@ Presenter flow: choose **Sample resume** (auto-selects a suggested role), then *
 |---|---|---|
 | Set | `DEMO_MODE=mock` | `DEMO_MODE=live` + `WATSONX_API_KEY` + exactly one of `WATSONX_PROJECT_ID` / `WATSONX_SPACE_ID` |
 | Engine | Deterministic keyword matcher with skill aliases | watsonx.ai `ModelInference.chat()` (JSON output, validated) |
-| Images | Not supported (clear message) | Sent to the multimodal model |
+| Images | Rejected with a clear message | Rejected with a clear message |
 | Failure | n/a | Auto-falls back to mock with a visible note |
 
 For live mode: `pip install "ibm-watsonx-ai>=1.5"` (uncomment in `requirements.txt`; use Python 3.10-3.12). The model id is checked against the live catalog at startup of the first call. Confirm its lifecycle status in your region before presenting.
 
 ## Supported resume formats
 
-PDF, DOCX, ODT, PPTX, XLSX, RTF, HTML/XML, TXT/MD/CSV and any other text, legacy `.doc` (best-effort), and images (PNG/JPG/WEBP/GIF, live mode only). Unknown extensions are sniffed by content. Limit: 10 MB (`MAX_UPLOAD_MB`). Scanned PDFs without a text layer are rejected with guidance (upload as an image in live mode).
+PDF, DOCX, ODT, PPTX, XLSX, RTF, HTML/XML, TXT/MD/CSV and any other text, and legacy `.doc` (best-effort). **Image files (PNG/JPG/WEBP/GIF, screenshots) are not supported**: the uploader blocks them and the API returns a 422 with a clear message. Unknown extensions are sniffed by content. Limit: 10 MB (`MAX_UPLOAD_MB`). Scanned PDFs without a text layer are rejected with guidance (upload a text-based copy).
 
 ## API
 
